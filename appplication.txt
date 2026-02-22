@@ -1,0 +1,86 @@
+1. User Management
+User registration and login
+Role-based access control (Admin, Accountant, Sales, etc.)
+Profile management
+Password management
+2. Customer Management
+Add, edit, delete customers
+GSTIN validation
+Billing and shipping address management
+Customer transaction history
+3. Vendor/Supplier Management
+Add and manage supplier details
+GSTIN validation
+Purchase history tracking
+4. Product/Service Management
+Add and manage products/services
+HSN/SAC code management
+GST rate configuration
+Stock/Inventory tracking
+Unit and pricing management
+5. Invoice Management
+Create tax invoices
+Generate proforma invoices
+Edit, cancel, and delete invoices
+Auto invoice numbering
+Multi-tax support (CGST, SGST, IGST, UTGST)
+PDF invoice generation
+Email/WhatsApp invoice sharing
+6. Purchase Management
+Purchase order creation
+Record purchase invoices
+Input tax credit tracking
+Supplier payment tracking
+7. GST Calculation & Tax Management
+Automatic GST calculation
+Reverse charge mechanism support
+Tax breakup summary
+GST ledger maintenance
+8. Returns & Filing Module
+GSTR-1 report generation
+GSTR-3B report generation
+GSTR-2A reconciliation
+Export data for GST portal upload (JSON/Excel)
+9. Payment Management
+Record payments (cash, bank, UPI, card)
+Partial and full payment tracking
+Outstanding and due reports
+Payment reminders
+10. Credit/Debit Notes Management
+Issue credit notes
+Issue debit notes
+Link notes to original invoices
+GST adjustment handling
+11. Reports & Analytics
+Sales report
+Purchase report
+GST summary report
+Profit & loss report
+Stock report
+Customer outstanding report
+Tax liability report
+12. Inventory Management
+Stock in/out tracking
+Low stock alerts
+Stock valuation
+Batch and serial number tracking
+13. E-Invoicing Integration
+IRN generation
+QR code generation
+E-way bill generation
+API integration with GST portal
+14. Audit & Compliance
+Audit trail logs
+Data backup & restore
+Compliance checks
+Error tracking
+15. Settings & Configuration
+Company profile setup
+GST details configuration
+Invoice template customization
+Financial year management
+Currency and tax settings
+
+backend : python django
+frontend : react tailwindcss v4
+database : SQLite

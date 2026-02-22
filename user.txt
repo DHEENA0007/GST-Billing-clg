@@ -1,0 +1,7 @@
+Admin Credentials:
+
+URL: http://localhost:5173/login
+Username: admin
+Password: password123
+Email: admin@company.com
+Role: ADMIN
