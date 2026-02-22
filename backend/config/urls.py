@@ -18,7 +18,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from core.auth_views import RegisterView, ProfileView
+from core.auth_views import RegisterView, ProfileView, ChangePasswordView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -26,5 +26,6 @@ urlpatterns = [
     path("api/auth/refresh/", TokenRefreshView.as_view(), name='token_refresh'),
     path("api/auth/register/", RegisterView.as_view(), name='auth_register'),
     path("api/auth/profile/", ProfileView.as_view(), name='auth_profile'),
+    path("api/auth/change-password/", ChangePasswordView.as_view(), name='auth_change_password'),
     path("", include("core.urls")),
 ]
