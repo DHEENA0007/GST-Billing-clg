@@ -38,7 +38,7 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
     final isMobile = size.width < 768;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A), // Dark elegant background
+      backgroundColor: const Color(0xFFF8FAFC), // Dark elegant background
       extendBodyBehindAppBar: true,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(75),
@@ -47,7 +47,7 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
             filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 300),
-              color: _isScrolled ? const Color(0xFF0F172A).withOpacity(0.8) : Colors.transparent,
+              color: _isScrolled ? const Color(0xFFF8FAFC).withOpacity(0.8) : Colors.transparent,
               child: SafeArea(
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: isMobile ? 24.0 : 80.0, vertical: 12),
@@ -69,13 +69,13 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
                                 BoxShadow(color: const Color(0xFF3B82F6).withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 4)),
                               ],
                             ),
-                            child: const Icon(Icons.receipt_long, color: Colors.white, size: 20),
+                            child: const Icon(Icons.receipt_long, color: const Color(0xFF0F172A), size: 20),
                           ),
                           const SizedBox(width: 12),
                           const Text(
                             'GST Billing',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: const Color(0xFF0F172A),
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 0.5,
@@ -100,7 +100,7 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
                             TextButton(
                               onPressed: () => context.go('/login'),
                               style: TextButton.styleFrom(
-                                foregroundColor: Colors.white70,
+                                foregroundColor: Color(0xFF475569),
                                 textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                               ),
                               child: const Text('Sign In'),
@@ -123,7 +123,7 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
                               ),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                                child: const Text('Get Started', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                                child: const Text('Get Started', style: TextStyle(color: const Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 16)),
                               ),
                             ),
                           ),
@@ -164,7 +164,7 @@ class _NavButton extends StatelessWidget {
       child: TextButton(
         onPressed: () {},
         style: TextButton.styleFrom(
-          foregroundColor: Colors.white70,
+          foregroundColor: Color(0xFF475569),
         ),
         child: Text(
           title,
@@ -190,7 +190,7 @@ class _HeroSection extends StatelessWidget {
         right: isMobile ? 24 : 80,
       ),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
+        color: const Color(0xFFF8FAFC),
         image: DecorationImage(
           image: const NetworkImage('https://www.transparenttextures.com/patterns/cubes.png'), // Very subtle geometric pattern overlay
           opacity: 0.03,
@@ -218,16 +218,16 @@ class _HeroSection extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B),
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFF334155)),
+                    border: Border.all(color: const Color(0xFF475569)),
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.star, color: Color(0xFFFACC15), size: 16),
                       SizedBox(width: 8),
-                      Text('The #1 GST Billing Software for Modern Teams', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13, fontWeight: FontWeight.w500)),
+                      Text('The #1 GST Billing Software for Modern Teams', style: TextStyle(color: Color(0xFF64748B), fontSize: 13, fontWeight: FontWeight.w500)),
                     ],
                   ),
                 ),
@@ -240,7 +240,7 @@ class _HeroSection extends StatelessWidget {
                     fontWeight: FontWeight.w900,
                     height: 1.1,
                     letterSpacing: -1,
-                    color: Colors.white,
+                    color: const Color(0xFF0F172A),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -251,7 +251,7 @@ class _HeroSection extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: isMobile ? 16 : 20,
-                      color: const Color(0xFF94A3B8),
+                      color: const Color(0xFF64748B),
                       height: 1.6,
                     ),
                   ),
@@ -282,7 +282,7 @@ class _HeroSection extends StatelessWidget {
                         ),
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-                          child: const Text('Start Free Trial', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                          child: const Text('Start Free Trial', style: TextStyle(color: const Color(0xFF0F172A), fontSize: 18, fontWeight: FontWeight.bold)),
                         ),
                       ),
                     ),
@@ -290,10 +290,10 @@ class _HeroSection extends StatelessWidget {
                       onPressed: () {},
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-                        side: const BorderSide(color: Color(0xFF334155), width: 2),
+                        side: const BorderSide(color: Color(0xFF475569), width: 2),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
-                      child: const Text('Book a Demo', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                      child: const Text('Book a Demo', style: TextStyle(color: const Color(0xFF0F172A), fontSize: 18, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
@@ -331,9 +331,9 @@ class _DashboardMockup extends StatelessWidget {
     return Container(
       constraints: const BoxConstraints(maxWidth: 1100),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF334155), width: 2),
+        border: Border.all(color: const Color(0xFF475569), width: 2),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF8B5CF6).withOpacity(0.15),
@@ -350,7 +350,7 @@ class _DashboardMockup extends StatelessWidget {
             // Window Header
             Container(
               height: 48,
-              color: const Color(0xFF0F172A),
+              color: const Color(0xFFF8FAFC),
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
                 children: [
@@ -369,7 +369,7 @@ class _DashboardMockup extends StatelessWidget {
                     width: 200,
                     height: 24,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E293B),
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(6),
                     ),
                     alignment: Alignment.center,
@@ -382,7 +382,7 @@ class _DashboardMockup extends StatelessWidget {
             // Window Body
             Container(
               padding: EdgeInsets.all(isMobile ? 16 : 32),
-              color: const Color(0xFF0F172A).withOpacity(0.5),
+              color: const Color(0xFFF8FAFC).withOpacity(0.5),
               child: Column(
                 children: [
                   Row(
@@ -403,13 +403,13 @@ class _DashboardMockup extends StatelessWidget {
                     children: [
                       Expanded(
                         flex: 3,
-                        child: _MockCard(height: isMobile ? 150 : 300, color: const Color(0xFF1E293B)),
+                        child: _MockCard(height: isMobile ? 150 : 300, color: Colors.white),
                       ),
                       if (!isMobile) ...[
                         const SizedBox(width: 24),
                         Expanded(
                           flex: 1,
-                          child: _MockCard(height: 300, color: const Color(0xFF1E293B)),
+                          child: _MockCard(height: 300, color: Colors.white),
                         ),
                       ]
                     ],
@@ -446,29 +446,31 @@ class _MockCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF334155).withOpacity(0.5)),
+        border: Border.all(color: const Color(0xFF475569).withOpacity(0.5)),
       ),
       padding: const EdgeInsets.all(16),
       child: iconColor != null
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(color: iconColor!.withOpacity(0.2), borderRadius: BorderRadius.circular(10)),
-                  child: Icon(Icons.show_chart, color: iconColor, size: 20),
-                ),
-                Column(
+          ? ClipRect(
+              child: OverflowBox(
+                alignment: Alignment.topLeft,
+                maxHeight: double.infinity,
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(height: 8, width: 60, color: const Color(0xFF64748B).withOpacity(0.4)),
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(color: iconColor!.withOpacity(0.2), borderRadius: BorderRadius.circular(10)),
+                      child: Icon(Icons.show_chart, color: iconColor, size: 20),
+                    ),
                     const SizedBox(height: 8),
-                    Container(height: 20, width: 100, color: Colors.white),
+                    Container(height: 8, width: 60, color: const Color(0xFF64748B).withOpacity(0.4)),
+                    const SizedBox(height: 6),
+                    Container(height: 14, width: 100, color: const Color(0xFF0F172A)),
                   ],
                 ),
-              ],
+              ),
             )
           : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -479,7 +481,7 @@ class _MockCard extends StatelessWidget {
                   child: Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0F172A).withOpacity(0.5),
+                      color: const Color(0xFFF8FAFC).withOpacity(0.5),
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
@@ -498,7 +500,7 @@ class _FeaturesSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: isMobile ? 24 : 80, vertical: 120),
-      color: const Color(0xFF0B1120),
+      color: const Color(0xFFF1F5F9),
       child: Column(
         children: [
           Container(
@@ -516,13 +518,13 @@ class _FeaturesSection extends StatelessWidget {
           Text(
             'Powerful Features for Scale',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: isMobile ? 32 : 48, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: -0.5),
+            style: TextStyle(fontSize: isMobile ? 32 : 48, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A), letterSpacing: -0.5),
           ),
           const SizedBox(height: 16),
           Text(
             'We provide all the tools you need to run your business efficiently.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: const Color(0xFF94A3B8), fontSize: isMobile ? 16 : 18),
+            style: TextStyle(color: const Color(0xFF64748B), fontSize: isMobile ? 16 : 18),
           ),
           const SizedBox(height: 80),
           LayoutBuilder(
@@ -599,9 +601,9 @@ class _PremiumFeatureCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B).withOpacity(0.5),
+        color: const Color(0xFF0F172A).withOpacity(0.5),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF334155)),
+        border: Border.all(color: const Color(0xFF475569)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
@@ -623,13 +625,13 @@ class _PremiumFeatureCard extends StatelessWidget {
                 BoxShadow(color: gradient[1].withOpacity(0.3), blurRadius: 16, offset: const Offset(0, 8)),
               ],
             ),
-            child: Icon(icon, color: Colors.white, size: 28),
+            child: Icon(icon, color: const Color(0xFF0F172A), size: 28),
           ),
           const SizedBox(height: 32),
-          Text(title, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: -0.5)),
+          Text(title, style: const TextStyle(color: const Color(0xFF0F172A), fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: -0.5)),
           const SizedBox(height: 12),
           Expanded(
-            child: Text(desc, style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 16, height: 1.6)),
+            child: Text(desc, style: const TextStyle(color: Color(0xFF64748B), fontSize: 16, height: 1.6)),
           ),
         ],
       ),
@@ -644,7 +646,7 @@ class _StatsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFF0F172A),
+      color: const Color(0xFFF8FAFC),
       padding: EdgeInsets.symmetric(horizontal: isMobile ? 24 : 80, vertical: 100),
       child: Container(
         padding: EdgeInsets.all(isMobile ? 32 : 80),
@@ -691,9 +693,9 @@ class _StatItem extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(value, style: const TextStyle(color: Colors.white, fontSize: 48, fontWeight: FontWeight.w900, letterSpacing: -1)),
+        Text(value, style: const TextStyle(color: Color(0xFF0F172A), fontSize: 48, fontWeight: FontWeight.w900, letterSpacing: -1)),
         const SizedBox(height: 8),
-        Text(label, style: const TextStyle(color: Color(0xFFE2E8F0), fontSize: 16, fontWeight: FontWeight.w500)),
+        Text(label, style: const TextStyle(color: Color(0xFF475569), fontSize: 16, fontWeight: FontWeight.w500)),
       ],
     );
   }
@@ -706,14 +708,14 @@ class _CTASection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFF0F172A),
+      color: const Color(0xFFF8FAFC),
       padding: EdgeInsets.symmetric(horizontal: isMobile ? 24 : 80, vertical: 120),
       child: Column(
         children: [
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E293B),
+              color: Colors.white,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(color: const Color(0xFF3B82F6).withOpacity(0.2), blurRadius: 40),
@@ -725,23 +727,23 @@ class _CTASection extends StatelessWidget {
           Text(
             'Ready to take control of your growth?',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: isMobile ? 36 : 56, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -1, height: 1.1),
+            style: TextStyle(fontSize: isMobile ? 36 : 56, fontWeight: FontWeight.w900, color: const Color(0xFF0F172A), letterSpacing: -1, height: 1.1),
           ),
           const SizedBox(height: 24),
           const Text(
             'Join thousands of businesses that trust GST Billing for their daily operational heavy-lifting.',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 20, color: Color(0xFF94A3B8), height: 1.5),
+            style: TextStyle(fontSize: 20, color: Color(0xFF64748B), height: 1.5),
           ),
           const SizedBox(height: 48),
           ElevatedButton(
             onPressed: () => context.go('/register'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: const Color(0xFF0F172A),
+              backgroundColor: const Color(0xFF3B82F6),
+              foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 24),
               elevation: 8,
-              shadowColor: Colors.white.withOpacity(0.3),
+              shadowColor: const Color(0xFF0F172A).withOpacity(0.3),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             ),
             child: const Text('Get Started Now', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -759,10 +761,10 @@ class _FooterSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFF0B1120),
       padding: EdgeInsets.symmetric(horizontal: isMobile ? 24 : 80, vertical: 40),
       decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: Color(0xFF1E293B))),
+        color: Color(0xFFF1F5F9),
+        border: Border(top: BorderSide(color: Colors.white)),
       ),
       child: Wrap(
         alignment: WrapAlignment.spaceBetween,
@@ -782,16 +784,16 @@ class _FooterSection extends StatelessWidget {
                 child: const Icon(Icons.receipt_long, color: Colors.white, size: 16),
               ),
               const SizedBox(width: 12),
-              const Text('GST Billing App', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text('GST Billing App', style: TextStyle(color: const Color(0xFF0F172A), fontSize: 18, fontWeight: FontWeight.bold)),
             ],
           ),
           const Text('© 2026 GST Billing. All rights reserved.', style: TextStyle(color: Color(0xFF64748B), fontSize: 14)),
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              IconButton(onPressed: () {}, icon: const Icon(Icons.facebook, color: Color(0xFF94A3B8))),
-              IconButton(onPressed: () {}, icon: const Icon(Icons.reddit, color: Color(0xFF94A3B8))),
-              IconButton(onPressed: () {}, icon: const Icon(Icons.link, color: Color(0xFF94A3B8))),
+              IconButton(onPressed: () {}, icon: const Icon(Icons.facebook, color: Color(0xFF64748B))),
+              IconButton(onPressed: () {}, icon: const Icon(Icons.reddit, color: Color(0xFF64748B))),
+              IconButton(onPressed: () {}, icon: const Icon(Icons.link, color: Color(0xFF64748B))),
             ],
           ),
         ],
