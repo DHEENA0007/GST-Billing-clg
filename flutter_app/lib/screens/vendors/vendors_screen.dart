@@ -106,92 +106,235 @@ class _VendorsScreenState extends State<VendorsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isWide = MediaQuery.of(context).size.width > 600;
+
     return AppScaffold(
       title: 'Vendors',
       fab: FloatingActionButton.extended(
         onPressed: () => _showForm(),
-        icon: const Icon(Icons.add),
-        label: const Text('Add Vendor'),
+        icon: const Icon(Icons.add_business_rounded, color: Colors.white),
+        label: const Text('NEW VENDOR', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1, color: Colors.white)),
+        backgroundColor: theme.colorScheme.primary,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
+          Container(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary,
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
+            ),
             child: TextField(
               controller: _searchCtrl,
+              onSubmitted: (_) => _load(),
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               decoration: InputDecoration(
-                hintText: 'Search vendors...',
-                prefixIcon: const Icon(Icons.search),
-                border: const OutlineInputBorder(),
-                contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                hintText: 'Search vendors by name or GSTIN...',
+                hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+                prefixIcon: const Icon(Icons.search_rounded, color: Colors.white),
+                filled: true,
+                fillColor: Colors.white.withOpacity(0.12),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                contentPadding: const EdgeInsets.symmetric(vertical: 16),
                 suffixIcon: _searchCtrl.text.isNotEmpty
-                    ? IconButton(icon: const Icon(Icons.clear), onPressed: () { _searchCtrl.clear(); _load(); })
+                    ? IconButton(
+                        icon: const Icon(Icons.close_rounded, color: Colors.white, size: 20),
+                        onPressed: () {
+                          _searchCtrl.clear();
+                          _load();
+                        })
                     : null,
               ),
-              onSubmitted: (_) => _load(),
             ),
           ),
           Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _error != null
-                    ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                        Text(_error!),
-                        ElevatedButton(onPressed: _load, child: const Text('Retry')),
-                      ]))
-                    : _vendors.isEmpty
-                        ? const Center(child: Text('No vendors found'))
-                        : RefreshIndicator(
-                            onRefresh: _load,
-                            child: ListView.builder(
-                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
-                              itemCount: _vendors.length,
-                              itemBuilder: (context, i) {
-                                final v = _vendors[i];
-                                return Card(
-                                  margin: const EdgeInsets.only(bottom: 8),
-                                  child: ListTile(
-                                    leading: CircleAvatar(
-                                      backgroundColor: Colors.teal.withOpacity(0.1),
-                                      child: Text(
-                                        (v.name ?? 'V')[0].toUpperCase(),
-                                        style: const TextStyle(color: Colors.teal, fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                    title: Text(v.name ?? '-', style: const TextStyle(fontWeight: FontWeight.bold)),
-                                    subtitle: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        if (v.phone != null) Text(v.phone!),
-                                        if (v.email != null && v.email!.isNotEmpty) Text(v.email!, style: const TextStyle(fontSize: 12)),
-                                        if (v.gstin != null && v.gstin!.isNotEmpty)
-                                          Text('GSTIN: ${v.gstin}', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-                                        if (v.address != null)
-                                          Text(v.address!, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-                                      ],
-                                    ),
-                                    isThreeLine: true,
-                                    trailing: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        IconButton(
-                                          icon: const Icon(Icons.edit_outlined, color: Colors.blue),
-                                          onPressed: () => _showForm(existing: v),
-                                        ),
-                                        IconButton(
-                                          icon: const Icon(Icons.delete_outline, color: Colors.red),
-                                          onPressed: () => _delete(v),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
+            child: Container(
+              color: const Color(0xFFF8FAFC),
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _error != null
+                      ? _buildErrorState()
+                      : _vendors.isEmpty
+                          ? _buildEmptyState()
+                          : RefreshIndicator(
+                              onRefresh: _load,
+                              child: GridView.builder(
+                                padding: const EdgeInsets.all(20),
+                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: isWide ? 2 : 1,
+                                  childAspectRatio: isWide ? 2.4 : 1.8,
+                                  crossAxisSpacing: 16,
+                                  mainAxisSpacing: 16,
+                                ),
+                                itemCount: _vendors.length,
+                                itemBuilder: (context, i) {
+                                  return _VendorCard(
+                                    vendor: _vendors[i],
+                                    onEdit: () => _showForm(existing: _vendors[i]),
+                                    onDelete: () => _delete(_vendors[i]),
+                                  );
+                                },
+                              ),
                             ),
-                          ),
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(color: Colors.red[50], shape: BoxShape.circle),
+            child: Icon(Icons.error_outline_rounded, size: 48, color: Colors.red[400]),
+          ),
+          const SizedBox(height: 16),
+          Text(_error ?? 'Sync error', style: const TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          ElevatedButton(onPressed: _load, child: const Text('RETRY')),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(32),
+            decoration: const BoxDecoration(color: Color(0xFFF1F5F9), shape: BoxShape.circle),
+            child: const Icon(Icons.inventory_2_rounded, size: 64, color: Color(0xFF94A3B8)),
+          ),
+          const SizedBox(height: 24),
+          const Text('No Vendors Records', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF1E293B))),
+          const Text('Manage your suppliers in this section.', style: TextStyle(color: Color(0xFF64748B))),
+        ],
+      ),
+    );
+  }
+}
+
+class _VendorCard extends StatelessWidget {
+  final Vendor vendor;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  const _VendorCard({required this.vendor, required this.onEdit, required this.onDelete});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+        border: Border.all(color: const Color(0xFFF1F5F9)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(color: const Color(0xFFF0FDFA), borderRadius: BorderRadius.circular(14)),
+                  alignment: Alignment.center,
+                  child: Text(
+                    (vendor.name ?? 'V')[0].toUpperCase(),
+                    style: const TextStyle(color: Color(0xFF0D9488), fontWeight: FontWeight.w900, fontSize: 18),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        vendor.name ?? 'Unknown Vendor',
+                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Color(0xFF1E293B)),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      if ((vendor.gstin ?? '').isNotEmpty)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(6)),
+                          child: Text(vendor.gstin!, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFF475569), letterSpacing: 0.5)),
+                        ),
+                    ],
+                  ),
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit_rounded, color: Color(0xFF6366F1), size: 20),
+                      onPressed: onEdit,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete_rounded, color: Color(0xFFEF4444), size: 20),
+                      onPressed: onDelete,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const Spacer(),
+            const Divider(height: 24, color: Color(0xFFF8FAFC)),
+            Row(
+              children: [
+                _VendorDetail(icon: Icons.phone_rounded, label: vendor.phone ?? 'No phone'),
+                const SizedBox(width: 16),
+                Expanded(child: _VendorDetail(icon: Icons.location_on_rounded, label: vendor.address ?? 'No address')),
+              ],
+            ),
+            const SizedBox(height: 8),
+            _VendorDetail(icon: Icons.alternate_email_rounded, label: (vendor.email ?? '').isEmpty ? 'No contact email' : vendor.email!),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _VendorDetail extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _VendorDetail({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: const Color(0xFF94A3B8)),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF64748B)),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -277,6 +420,7 @@ class _VendorFormState extends State<_VendorForm> {
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
+                  isExpanded: true,
                   value: _stateCode,
                   decoration: const InputDecoration(labelText: 'State', border: OutlineInputBorder()),
                   items: IndianStates.states.map((s) => DropdownMenuItem(

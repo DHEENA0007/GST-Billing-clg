@@ -142,50 +142,65 @@ class GstBillingApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF3949AB),
+          seedColor: const Color(0xFF4F46E5), // Indigo 600
           brightness: Brightness.light,
-          primary: const Color(0xFF3949AB),
-          secondary: const Color(0xFF1565C0),
-          surface: const Color(0xFFF5F5F5),
+          primary: const Color(0xFF4F46E5),
+          secondary: const Color(0xFF0EA5E9), // Sky 500
+          background: const Color(0xFFF8FAFC), // Slate 50
         ),
+        scaffoldBackgroundColor: const Color(0xFFF8FAFC),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF3949AB),
+          backgroundColor: Color(0xFF4F46E5),
           foregroundColor: Colors.white,
           elevation: 0,
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF3949AB),
+            backgroundColor: const Color(0xFF4F46E5),
             foregroundColor: Colors.white,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
             ),
           ),
         ),
         cardTheme: CardThemeData(
-          elevation: 2,
+          elevation: 0,
+          color: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(24),
+            side: const BorderSide(color: Color(0xFFF1F5F9)), // Slate 100
           ),
         ),
         inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFF4F46E5), width: 2),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
-        floatingActionButtonTheme: const FloatingActionButtonThemeData(
-          backgroundColor: Color(0xFF3949AB),
+        floatingActionButtonTheme: FloatingActionButtonThemeData(
+          backgroundColor: const Color(0xFF4F46E5),
           foregroundColor: Colors.white,
-        ),
-        chipTheme: ChipThemeData(
-          selectedColor: const Color(0xFF3949AB).withOpacity(0.2),
-          labelStyle: const TextStyle(fontSize: 13),
+          elevation: 4,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
         tabBarTheme: const TabBarThemeData(
-          indicatorColor: Color(0xFF3949AB),
-          labelColor: Color(0xFF3949AB),
-          unselectedLabelColor: Colors.grey,
+          indicatorColor: Color(0xFF4F46E5),
+          labelColor: Color(0xFF4F46E5),
+          unselectedLabelColor: Color(0xFF64748B), // Slate 500
+          labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
         ),
       ),
       routerConfig: router,

@@ -390,6 +390,7 @@ class _RolesScreenState extends State<RolesScreen> {
                                                   child:
                                                       DropdownButtonFormField<
                                                           String>(
+                                                    isExpanded: true,
                                                     value: _editingRole,
                                                     decoration:
                                                         const InputDecoration(

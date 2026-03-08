@@ -85,6 +85,7 @@ class PurchaseSerializer(serializers.ModelSerializer):
 
 class AuditLogSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
+    ip_address = serializers.CharField(read_only=True)
 
     class Meta:
         model = AuditLog

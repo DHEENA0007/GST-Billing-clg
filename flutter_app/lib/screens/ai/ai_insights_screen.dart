@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../../core/api_service.dart';
 import '../../core/constants.dart';
 import '../../widgets/app_scaffold.dart';
@@ -368,6 +369,7 @@ class _AiInsightsScreenState extends State<AiInsightsScreen>
                 ),
               ),
             ),
+            _buildHealthPieChart(factors),
             if (factors.isNotEmpty) ...[
               const SizedBox(height: 16),
               Text('Contributing Factors',
@@ -445,11 +447,11 @@ class _AiInsightsScreenState extends State<AiInsightsScreen>
 
     return RefreshIndicator(
       onRefresh: _load,
-      child: ListView.builder(
+      child: ListView(
         padding: const EdgeInsets.all(16),
-        itemCount: alerts.length,
-        itemBuilder: (context, i) {
-          final alert = alerts[i];
+        children: [
+          _buildSeverityPieChart(alerts),
+          ...alerts.map((alert) {
           if (alert is! Map) return const SizedBox.shrink();
           final severity = alert['severity']?.toString() ?? alert['type']?.toString();
           final color = _alertColor(severity);
@@ -542,7 +544,8 @@ class _AiInsightsScreenState extends State<AiInsightsScreen>
               ),
             ),
           );
-        },
+        }).toList(),
+        ],
       ),
     );
   }
@@ -564,11 +567,11 @@ class _AiInsightsScreenState extends State<AiInsightsScreen>
 
     return RefreshIndicator(
       onRefresh: _load,
-      child: ListView.builder(
+      child: ListView(
         padding: const EdgeInsets.all(16),
-        itemCount: recs.length,
-        itemBuilder: (context, i) {
-          final rec = recs[i];
+        children: [
+          _buildStrategyPieChart(recs),
+          ...recs.map((rec) {
           if (rec is! Map) return const SizedBox.shrink();
           final category = rec['category']?.toString();
           final impact = rec['impact']?.toString() ?? rec['impact_level']?.toString();
@@ -654,7 +657,8 @@ class _AiInsightsScreenState extends State<AiInsightsScreen>
               ),
             ),
           );
-        },
+        }).toList(),
+        ],
       ),
     );
   }
@@ -789,6 +793,129 @@ class _AiInsightsScreenState extends State<AiInsightsScreen>
                         }).toList(),
                       ),
                     ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSeverityPieChart(List alerts) {
+    if (alerts.isEmpty) return const SizedBox.shrink();
+    final counts = <String, int>{};
+    for (var a in alerts) {
+      if (a is! Map) continue;
+      final severity = (a['severity']?.toString() ?? a['type']?.toString() ?? 'unknown').toUpperCase();
+      counts[severity] = (counts[severity] ?? 0) + 1;
+    }
+    
+    final sections = counts.entries.map((e) {
+      final color = _alertColor(e.key);
+      return PieChartSectionData(
+        value: e.value.toDouble(),
+        title: '${e.value}',
+        color: color,
+        radius: 40,
+        titleStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 10),
+      );
+    }).toList();
+
+    return _buildPieChartCard('ALERTS BY SEVERITY', sections, counts.keys.toList(), counts.values.toList(), _alertColor);
+  }
+
+  Widget _buildStrategyPieChart(List recs) {
+    if (recs.isEmpty) return const SizedBox.shrink();
+    final counts = <String, int>{};
+    for (var r in recs) {
+      if (r is! Map) continue;
+      final category = (r['category']?.toString() ?? 'General').toUpperCase();
+      counts[category] = (counts[category] ?? 0) + 1;
+    }
+
+    final colors = [Colors.indigo, Colors.blue, Colors.teal, Colors.orange, Colors.purple];
+    int colorIdx = 0;
+    final Map<String, Color> catColors = {};
+
+    final sections = counts.entries.map((e) {
+      if (!catColors.containsKey(e.key)) {
+        catColors[e.key] = colors[colorIdx % colors.length];
+        colorIdx++;
+      }
+      return PieChartSectionData(
+        value: e.value.toDouble(),
+        title: '${e.value}',
+        color: catColors[e.key]!,
+        radius: 40,
+        titleStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 10),
+      );
+    }).toList();
+
+    return _buildPieChartCard('STRATEGIES BY CATEGORY', sections, counts.keys.toList(), counts.values.toList(), (k) => catColors[k]!);
+  }
+
+  Widget _buildHealthPieChart(List factors) {
+    if (factors.isEmpty) return const SizedBox.shrink();
+    
+    final sections = <PieChartSectionData>[];
+    final legends = <String>[];
+    final values = <int>[];
+    
+    for (var f in factors) {
+      if (f is! Map) continue;
+      final name = (f['name']?.toString() ?? f['factor']?.toString() ?? '').toUpperCase();
+      final scoreVal = f['score'] ?? f['value'] ?? 0;
+      final scoreD = scoreVal is num ? scoreVal.toDouble() : 0.0;
+      final color = _getHealthColor(scoreD);
+      
+      sections.add(PieChartSectionData(
+        value: scoreD,
+        title: '${scoreD.toInt()}%',
+        color: color.withOpacity(0.8),
+        radius: 40,
+        titleStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 10),
+      ));
+      legends.add(name);
+      values.add(scoreD.toInt());
+    }
+
+    return _buildPieChartCard('HEALTH METRICS', sections, legends, values, (k) => _getHealthColor(values[legends.indexOf(k)].toDouble()));
+  }
+
+  Widget _buildPieChartCard(String title, List<PieChartSectionData> sections, List<String> legends, List<int> values, Color Function(String) colorMap) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                  Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
+                  const Spacer(),
+                  const Icon(Icons.pie_chart, color: Colors.grey, size: 16),
+              ]
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 140,
+              child: PieChart(PieChartData(sections: sections, centerSpaceRadius: 35, sectionsSpace: 2)),
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 12,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              children: List.generate(legends.length, (i) {
+                final color = colorMap(legends[i]);
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+                    const SizedBox(width: 4),
+                    Text('${legends[i]} (${values[i]})', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  ],
+                );
+              }),
             ),
           ],
         ),

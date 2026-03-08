@@ -156,6 +156,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final filtered = _filtered;
     final isWide = MediaQuery.of(context).size.width > 600;
 
@@ -163,84 +164,111 @@ class _CustomersScreenState extends State<CustomersScreen> {
       title: 'Customers',
       fab: FloatingActionButton.extended(
         onPressed: () => _showForm(),
-        icon: const Icon(Icons.add),
-        label: const Text('Add Customer'),
+        icon: const Icon(Icons.add_rounded, color: Colors.white),
+        label: const Text('NEW CUSTOMER', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1, color: Colors.white)),
+        backgroundColor: theme.colorScheme.primary,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
+          Container(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary,
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
+            ),
             child: TextField(
               controller: _searchCtrl,
+              onChanged: (_) => setState(() {}),
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               decoration: InputDecoration(
-                hintText: 'Search customers...',
-                prefixIcon: const Icon(Icons.search),
-                border: const OutlineInputBorder(),
-                contentPadding:
-                    const EdgeInsets.symmetric(vertical: 8),
+                hintText: 'Search by name, GSTIN or phone...',
+                hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+                prefixIcon: const Icon(Icons.search_rounded, color: Colors.white),
+                filled: true,
+                fillColor: Colors.white.withOpacity(0.12),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                contentPadding: const EdgeInsets.symmetric(vertical: 16),
                 suffixIcon: _searchCtrl.text.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear),
+                        icon: const Icon(Icons.close_rounded, color: Colors.white, size: 20),
                         onPressed: () {
                           _searchCtrl.clear();
                           setState(() {});
                         })
                     : null,
               ),
-              onChanged: (_) => setState(() {}),
             ),
           ),
           Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _error != null
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(_error!),
-                            const SizedBox(height: 16),
-                            ElevatedButton(
-                                onPressed: _load,
-                                child: const Text('Retry')),
-                          ],
-                        ),
-                      )
-                    : filtered.isEmpty
-                        ? const Center(
-                            child: Text('No customers found'))
-                        : RefreshIndicator(
-                            onRefresh: _load,
-                            child: LayoutBuilder(
-                              builder: (context, constraints) {
-                                final innerWidth = constraints.maxWidth - 32;
-                                final crossCount = isWide ? 2 : 1;
-                                final itemWidth = (innerWidth - ((crossCount - 1) * 12)) / crossCount;
-                                final aspect = itemWidth / 150.0;
-
-                                return GridView.builder(
-                                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
-                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: crossCount,
-                                    childAspectRatio: aspect,
-                                    crossAxisSpacing: 12,
-                                    mainAxisSpacing: 12,
-                                  ),
-                                  itemCount: filtered.length,
-                                  itemBuilder: (context, i) {
-                                    final c = filtered[i];
-                                    return _CustomerCard(
-                                      customer: c,
-                                      stateLabel: _stateLabel(c.stateCode),
-                                      onEdit: () => _showForm(existing: c),
-                                      onDelete: () => _delete(c),
-                                    );
-                                  },
-                                );
-                              },
+            child: Container(
+              color: const Color(0xFFF8FAFC),
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _error != null
+                      ? _buildErrorState()
+                      : filtered.isEmpty
+                          ? _buildEmptyState()
+                          : RefreshIndicator(
+                              onRefresh: _load,
+                              child: GridView.builder(
+                                padding: const EdgeInsets.all(20),
+                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: isWide ? 2 : 1,
+                                  childAspectRatio: isWide ? 2.4 : 1.8,
+                                  crossAxisSpacing: 16,
+                                  mainAxisSpacing: 16,
+                                ),
+                                itemCount: filtered.length,
+                                itemBuilder: (context, i) {
+                                  return _CustomerCard(
+                                    customer: filtered[i],
+                                    stateLabel: _stateLabel(filtered[i].stateCode),
+                                    onEdit: () => _showForm(existing: filtered[i]),
+                                    onDelete: () => _delete(filtered[i]),
+                                  );
+                                },
+                              ),
                             ),
-                          ),
+            ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(color: Colors.red[50], shape: BoxShape.circle),
+            child: Icon(Icons.cloud_off_rounded, size: 48, color: Colors.red[400]),
+          ),
+          const SizedBox(height: 16),
+          Text(_error ?? 'Connection failed', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 16),
+          ElevatedButton(onPressed: _load, child: const Text('RETRY')),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(32),
+            decoration: const BoxDecoration(color: Color(0xFFF1F5F9), shape: BoxShape.circle),
+            child: const Icon(Icons.people_alt_rounded, size: 64, color: Color(0xFF94A3B8)),
+          ),
+          const SizedBox(height: 24),
+          const Text('No Customers Yet', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF1E293B))),
+          const Text('Your customer database will appear here.', style: TextStyle(color: Color(0xFF64748B))),
         ],
       ),
     );
@@ -262,92 +290,83 @@ class _CustomerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+        border: Border.all(color: const Color(0xFFF1F5F9)),
+      ),
+      clipBehavior: Clip.antiAlias,
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  backgroundColor:
-                      Colors.indigo.withOpacity(0.1),
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(color: const Color(0xFFEEF2FF), borderRadius: BorderRadius.circular(14)),
+                  alignment: Alignment.center,
                   child: Text(
                     (customer.name ?? 'C')[0].toUpperCase(),
-                    style: const TextStyle(
-                        color: Colors.indigo,
-                        fontWeight: FontWeight.bold),
+                    style: const TextStyle(color: Color(0xFF4F46E5), fontWeight: FontWeight.w900, fontSize: 18),
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(customer.name ?? '-',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15),
-                          overflow: TextOverflow.ellipsis),
+                      Text(
+                        customer.name ?? 'Unnamed Customer',
+                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Color(0xFF1E293B)),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
                       if ((customer.gstin ?? '').isNotEmpty)
                         Container(
-                          margin: const EdgeInsets.only(top: 2),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.green[50],
-                            borderRadius: BorderRadius.circular(4),
-                            border:
-                                Border.all(color: Colors.green),
-                          ),
-                          child: Text(customer.gstin!,
-                              style: TextStyle(
-                                  fontSize: 10,
-                                  color: Colors.green[800])),
-                        ),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(color: const Color(0xFFF0FDF4), borderRadius: BorderRadius.circular(6), border: Border.all(color: const Color(0xFFDCFCE7))),
+                          child: Text(customer.gstin!, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFF15803D), letterSpacing: 0.5)),
+                        )
+                      else
+                        const Text('NO GSTIN', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFF94A3B8), letterSpacing: 0.5)),
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined,
-                      color: Colors.blue, size: 20),
-                  onPressed: onEdit,
-                  tooltip: 'Edit',
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline,
-                      color: Colors.red, size: 20),
-                  onPressed: onDelete,
-                  tooltip: 'Delete',
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit_rounded, color: Color(0xFF6366F1), size: 20),
+                      onPressed: onEdit,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete_rounded, color: Color(0xFFEF4444), size: 20),
+                      onPressed: onDelete,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ],
                 ),
               ],
             ),
+            const Spacer(),
+            const Divider(height: 24, color: Color(0xFFF8FAFC)),
+            Row(
+              children: [
+                _StatusItem(icon: Icons.phone_rounded, label: customer.phone ?? 'No phone'),
+                const SizedBox(width: 16),
+                Expanded(child: _StatusItem(icon: Icons.location_on_rounded, label: stateLabel.split('-').last.trim())),
+              ],
+            ),
             const SizedBox(height: 8),
-            if ((customer.phone ?? '').isNotEmpty)
-              _InfoRow(icon: Icons.phone, text: customer.phone!),
-            if ((customer.email ?? '').isNotEmpty)
-              _InfoRow(icon: Icons.email, text: customer.email!),
-            if (stateLabel.isNotEmpty)
-              Row(
-                children: [
-                  const Icon(Icons.location_on,
-                      size: 14, color: Colors.grey),
-                  const SizedBox(width: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.blue[50],
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(stateLabel,
-                        style: TextStyle(
-                            fontSize: 10, color: Colors.blue[800])),
-                  ),
-                ],
-              ),
+            _StatusItem(icon: Icons.alternate_email_rounded, label: (customer.email ?? '').isEmpty ? 'No email registered' : customer.email!),
           ],
         ),
       ),
@@ -355,28 +374,27 @@ class _CustomerCard extends StatelessWidget {
   }
 }
 
-class _InfoRow extends StatelessWidget {
+class _StatusItem extends StatelessWidget {
   final IconData icon;
-  final String text;
-
-  const _InfoRow({required this.icon, required this.text});
+  final String label;
+  const _StatusItem({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Row(
-        children: [
-          Icon(icon, size: 14, color: Colors.grey),
-          const SizedBox(width: 4),
-          Flexible(
-            child: Text(text,
-                style: TextStyle(
-                    fontSize: 12, color: Colors.grey[700]),
-                overflow: TextOverflow.ellipsis),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: const Color(0xFF94A3B8)),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF64748B)),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -386,8 +404,7 @@ class _CustomerDialog extends StatefulWidget {
   final Customer? customer;
   final Future<void> Function(Map<String, dynamic> data) onSave;
 
-  const _CustomerDialog(
-      {required this.api, this.customer, required this.onSave});
+  const _CustomerDialog({required this.api, this.customer, required this.onSave});
 
   @override
   State<_CustomerDialog> createState() => _CustomerDialogState();
@@ -415,9 +432,8 @@ class _CustomerDialogState extends State<_CustomerDialog> {
     _phoneCtrl = TextEditingController(text: c?.phone ?? '');
     _emailCtrl = TextEditingController(text: c?.email ?? '');
     _addressCtrl = TextEditingController(text: c?.address ?? '');
-    _shippingCtrl =
-        TextEditingController(text: c?.shippingAddress ?? '');
-    _stateCode = c?.stateCode ?? '29';
+    _shippingCtrl = TextEditingController(text: c?.shippingAddress ?? '');
+    _stateCode = c?.stateCode ?? '33'; // Default to Tamil Nadu or similar
   }
 
   @override
@@ -439,19 +455,14 @@ class _CustomerDialogState extends State<_CustomerDialog> {
       _gstinValidationMsg = null;
     });
     try {
-      final result = await widget.api.post(
-          '${AppConstants.customers}validate_gstin/',
-          data: {'gstin': gstin});
+      final result = await widget.api.post('${AppConstants.customers}validate_gstin/', data: {'gstin': gstin});
       setState(() {
-        _gstinValidationMsg =
-            result is Map && result['valid'] == true
-                ? 'Valid GSTIN'
-                : 'Invalid GSTIN';
+        _gstinValidationMsg = result is Map && result['valid'] == true ? 'Verified GSTIN' : 'Invalid GSTIN';
         _gstinValidating = false;
       });
     } catch (_) {
       setState(() {
-        _gstinValidationMsg = 'Validation failed';
+        _gstinValidationMsg = 'Server Unreachable';
         _gstinValidating = false;
       });
     }
@@ -459,161 +470,257 @@ class _CustomerDialogState extends State<_CustomerDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(widget.customer != null
-          ? 'Edit Customer'
-          : 'Add Customer'),
-      content: SizedBox(
-        width: 520,
-        child: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: _nameCtrl,
-                  decoration: const InputDecoration(
-                      labelText: 'Customer Name *',
-                      border: OutlineInputBorder()),
-                  validator: (v) => v == null || v.isEmpty
-                      ? 'Required'
-                      : null,
+    final theme = Theme.of(context);
+    final isEdit = widget.customer != null;
+
+    return Dialog(
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      clipBehavior: Clip.antiAlias,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 520),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Styled Header
+            Container(
+              padding: const EdgeInsets.all(28),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: isEdit ? [const Color(0xFF6366F1), const Color(0xFF4F46E5)] : [const Color(0xFF0EA5E9), const Color(0xFF0284C7)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _gstinCtrl,
-                        decoration: const InputDecoration(
-                            labelText: 'GSTIN',
-                            border: OutlineInputBorder()),
-                        maxLength: 15,
-                        onChanged: (_) =>
-                            setState(() => _gstinValidationMsg = null),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      onPressed: _gstinValidating
-                          ? null
-                          : _validateGstin,
-                      child: _gstinValidating
-                          ? const SizedBox(
-                              height: 16,
-                              width: 16,
-                              child: CircularProgressIndicator(
-                                  strokeWidth: 2))
-                          : const Text('Validate'),
-                    ),
-                  ],
-                ),
-                if (_gstinValidationMsg != null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Text(
-                      _gstinValidationMsg!,
-                      style: TextStyle(
-                          color: _gstinValidationMsg == 'Valid GSTIN'
-                              ? Colors.green
-                              : Colors.red,
-                          fontSize: 12),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(16)),
+                    child: Icon(isEdit ? Icons.person_search_rounded : Icons.person_add_rounded, color: Colors.white, size: 28),
+                  ),
+                  const SizedBox(width: 20),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isEdit ? 'UPDATE ENTITY' : 'ESTABLISH NEW ENTITY',
+                          style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 1.5),
+                        ),
+                        Text(
+                          isEdit ? (widget.customer?.name ?? 'Customer') : 'Relationship Entry',
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 22, letterSpacing: -0.5),
+                        ),
+                      ],
                     ),
                   ),
-                const SizedBox(height: 4),
-                TextFormField(
-                  controller: _phoneCtrl,
-                  decoration: const InputDecoration(
-                      labelText: 'Phone *',
-                      border: OutlineInputBorder()),
-                  keyboardType: TextInputType.phone,
-                  validator: (v) => v == null || v.isEmpty
-                      ? 'Required'
-                      : null,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _emailCtrl,
-                  decoration: const InputDecoration(
-                      labelText: 'Email',
-                      border: OutlineInputBorder()),
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  value: _stateCode,
-                  decoration: const InputDecoration(
-                      labelText: 'State Code *',
-                      border: OutlineInputBorder()),
-                  isExpanded: true,
-                  items: IndianStates.states
-                      .map((s) => DropdownMenuItem(
-                            value: s['code'],
-                            child: Text(
-                                '${s['code']} - ${s['name']}'),
-                          ))
-                      .toList(),
-                  onChanged: (v) =>
-                      setState(() => _stateCode = v),
-                  validator: (v) =>
-                      v == null ? 'Required' : null,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _addressCtrl,
-                  decoration: const InputDecoration(
-                      labelText: 'Billing Address *',
-                      border: OutlineInputBorder(),
-                      alignLabelWithHint: true),
-                  maxLines: 3,
-                  validator: (v) => v == null || v.isEmpty
-                      ? 'Required'
-                      : null,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _shippingCtrl,
-                  decoration: const InputDecoration(
-                      labelText: 'Shipping Address',
-                      border: OutlineInputBorder(),
-                      alignLabelWithHint: true),
-                  maxLines: 3,
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+
+            // Form Content
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(28),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSectionLabel('ENTITY INFORMATION'),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _nameCtrl,
+                        style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF1E293B)),
+                        decoration: _inputDecoration('Business / Customer Name *', Icons.business_rounded),
+                        validator: (v) => v == null || v.isEmpty ? 'Entity name identifier required' : null,
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: TextFormField(
+                              controller: _gstinCtrl,
+                              style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF1E293B), letterSpacing: 1),
+                              decoration: _inputDecoration('GSTIN (Optional)', Icons.verified_user_rounded).copyWith(
+                                suffixIcon: _gstinValidating 
+                                  ? const Padding(padding: EdgeInsets.all(12), child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)))
+                                  : (_gstinValidationMsg == 'Verified GSTIN' ? const Icon(Icons.check_circle_rounded, color: Colors.green) : null),
+                              ),
+                              maxLength: 15,
+                              onChanged: (_) => setState(() => _gstinValidationMsg = null),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          SizedBox(
+                            height: 56,
+                            child: OutlinedButton(
+                              onPressed: _gstinValidating ? null : _validateGstin,
+                              style: OutlinedButton.styleFrom(
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                side: BorderSide(color: theme.colorScheme.primary.withOpacity(0.5)),
+                              ),
+                              child: const Text('VERIFY', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (_gstinValidationMsg != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4, bottom: 8, left: 4),
+                          child: Row(
+                            children: [
+                              Icon(
+                                _gstinValidationMsg == 'Verified GSTIN' ? Icons.check_circle_rounded : Icons.error_rounded,
+                                size: 14,
+                                color: _gstinValidationMsg == 'Verified GSTIN' ? Colors.green : Colors.red,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                _gstinValidationMsg!,
+                                style: TextStyle(color: _gstinValidationMsg == 'Verified GSTIN' ? Colors.green : Colors.red, fontSize: 11, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _phoneCtrl,
+                              style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF1E293B)),
+                              decoration: _inputDecoration('Phone *', Icons.phone_rounded),
+                              keyboardType: TextInputType.phone,
+                              validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              isExpanded: true,
+                              value: _stateCode,
+                              dropdownColor: Colors.white,
+                              style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF1E293B), fontSize: 13),
+                              decoration: _inputDecoration('State Code *', Icons.map_rounded),
+                              items: IndianStates.states.map((s) => DropdownMenuItem(value: s['code'], child: Text('${s['code']} - ${s['name']}'))).toList(),
+                              onChanged: (v) => setState(() => _stateCode = v),
+                              validator: (v) => v == null ? 'Selection required' : null,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _emailCtrl,
+                        style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF1E293B)),
+                        decoration: _inputDecoration('Electronic Mail', Icons.alternate_email_rounded),
+                        keyboardType: TextInputType.emailAddress,
+                      ),
+                      const SizedBox(height: 24),
+                      _buildSectionLabel('LOGISTICAL DETAILS'),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _addressCtrl,
+                        maxLines: 2,
+                        style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF1E293B), fontSize: 13),
+                        decoration: _inputDecoration('Billing Address *', Icons.location_on_rounded),
+                        validator: (v) => v == null || v.isEmpty ? 'Billing physical address required' : null,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _shippingCtrl,
+                        maxLines: 2,
+                        style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF1E293B), fontSize: 13),
+                        decoration: _inputDecoration('Shipping Address', Icons.local_shipping_rounded),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            // Action Bar
+            Container(
+              padding: const EdgeInsets.all(28),
+              decoration: const BoxDecoration(color: Color(0xFFF8FAFC), border: Border(top: BorderSide(color: Color(0xFFF1F5F9)))),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        foregroundColor: const Color(0xFF64748B),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      child: const Text('DISCARD', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton(
+                      onPressed: _isSaving
+                          ? null
+                          : () async {
+                              if (!_formKey.currentState!.validate()) return;
+                              setState(() => _isSaving = true);
+                              await widget.onSave({
+                                'name': _nameCtrl.text.trim(),
+                                'gstin': _gstinCtrl.text.trim(),
+                                'phone': _phoneCtrl.text.trim(),
+                                'email': _emailCtrl.text.trim(),
+                                'state_code': _stateCode,
+                                'address': _addressCtrl.text.trim(),
+                                'shipping_address': _shippingCtrl.text.trim(),
+                              });
+                              if (mounted) setState(() => _isSaving = false);
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      child: _isSaving
+                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          : Text(isEdit ? 'AUTHORIZE UPDATE' : 'REGISTER ENTITY', style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
-      actions: [
-        TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel')),
-        ElevatedButton(
-          onPressed: _isSaving
-              ? null
-              : () async {
-                  if (!_formKey.currentState!.validate()) return;
-                  setState(() => _isSaving = true);
-                  await widget.onSave({
-                    'name': _nameCtrl.text,
-                    'gstin': _gstinCtrl.text,
-                    'phone': _phoneCtrl.text,
-                    'email': _emailCtrl.text,
-                    'state_code': _stateCode,
-                    'address': _addressCtrl.text,
-                    'shipping_address': _shippingCtrl.text,
-                  });
-                  if (mounted) setState(() => _isSaving = false);
-                },
-          child: _isSaving
-              ? const SizedBox(
-                  height: 16,
-                  width: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2))
-              : Text(widget.customer != null ? 'Update' : 'Add Customer'),
-        ),
-      ],
+    );
+  }
+
+  Widget _buildSectionLabel(String label) {
+    return Text(
+      label,
+      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 1.5, color: Color(0xFF94A3B8)),
+    );
+  }
+
+  InputDecoration _inputDecoration(String label, IconData icon) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon, size: 20, color: const Color(0xFF64748B)),
+      labelStyle: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600, fontSize: 13),
+      filled: true,
+      fillColor: Colors.white,
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2)),
+      errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFFE11D48))),
+      focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFFE11D48), width: 2)),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      counterText: '',
     );
   }
 }

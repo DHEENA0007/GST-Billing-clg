@@ -10,16 +10,19 @@ class UserModel {
 
   UserModel({this.id, this.username, this.email, this.phone, this.role, this.firstName, this.lastName, this.isActive});
 
-  factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(
-        id: json['id'],
-        username: json['username'],
-        email: json['email'],
-        phone: json['phone'],
-        role: json['role'],
-        firstName: json['first_name'],
-        lastName: json['last_name'],
-        isActive: json['is_active'],
-      );
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    final profile = json['profile'] as Map<String, dynamic>?;
+    return UserModel(
+      id: json['id'],
+      username: json['username'],
+      email: json['email'],
+      phone: json['phone'] ?? profile?['phone'],
+      role: json['role'] ?? profile?['role'],
+      firstName: json['first_name'],
+      lastName: json['last_name'],
+      isActive: json['is_active'],
+    );
+  }
 
   Map<String, dynamic> toJson() => {
         'id': id,

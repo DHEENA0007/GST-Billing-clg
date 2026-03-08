@@ -21,6 +21,7 @@ class _AuditScreenState extends State<AuditScreen> {
   List<AuditLog> _logs = [];
   bool _isLoading = true;
   String? _error;
+  String _filterAction = 'ALL';
 
   @override
   void initState() {
@@ -44,48 +45,63 @@ class _AuditScreenState extends State<AuditScreen> {
   Future<void> _load() async {
     setState(() => _isLoading = true);
     try {
-      final params = <String, dynamic>{};
-      if (_searchCtrl.text.isNotEmpty) params['search'] = _searchCtrl.text;
-      final data = await _api.get(AppConstants.auditLogs, queryParameters: params);
+      final data = await _api.get(AppConstants.auditLogs);
       List items = [];
       if (data is Map && data['results'] != null) items = data['results'];
       else if (data is List) items = data;
       setState(() {
         _logs = items.map((l) => AuditLog.fromJson(l)).toList();
         _isLoading = false;
+        _error = null;
       });
     } catch (e) {
       setState(() { _error = e.toString(); _isLoading = false; });
     }
   }
 
+  List<String> get _allActions {
+    return _logs.map((l) => l.action ?? '').toSet().toList()
+      ..sort()
+      ..removeWhere((s) => s.isEmpty);
+  }
+
+  List<AuditLog> get _filteredLogs {
+    final q = _searchCtrl.text.toLowerCase();
+    return _logs.where((l) {
+      final matchAction = _filterAction == 'ALL' || l.action == _filterAction;
+      final matchSearch = q.isEmpty ||
+          (l.user ?? '').toLowerCase().contains(q) ||
+          (l.action ?? '').toLowerCase().contains(q) ||
+          (l.details ?? '').toLowerCase().contains(q) ||
+          (l.model ?? '').toLowerCase().contains(q);
+      return matchAction && matchSearch;
+    }).toList();
+  }
+
   Color _actionColor(String? action) {
-    switch (action?.toUpperCase()) {
-      case 'CREATE': return Colors.green;
-      case 'UPDATE': return Colors.blue;
-      case 'DELETE': return Colors.red;
-      case 'LOGIN': return Colors.purple;
-      case 'LOGOUT': return Colors.orange;
-      default: return Colors.grey;
-    }
+    final a = action?.toUpperCase() ?? '';
+    if (a.contains('CREATE') || a.contains('ADD')) return Colors.green;
+    if (a.contains('UPDATE') || a.contains('EDIT')) return Colors.blue;
+    if (a.contains('DELETE') || a.contains('CANCEL') || a.contains('REMOVE')) return Colors.red;
+    if (a.contains('LOGIN')) return Colors.indigo;
+    return Colors.grey;
   }
 
   IconData _actionIcon(String? action) {
-    switch (action?.toUpperCase()) {
-      case 'CREATE': return Icons.add_circle;
-      case 'UPDATE': return Icons.edit;
-      case 'DELETE': return Icons.delete;
-      case 'LOGIN': return Icons.login;
-      case 'LOGOUT': return Icons.logout;
-      default: return Icons.history;
-    }
+    final a = action?.toUpperCase() ?? '';
+    if (a.contains('CREATE') || a.contains('ADD')) return Icons.add_circle_outline;
+    if (a.contains('UPDATE') || a.contains('EDIT')) return Icons.edit_note;
+    if (a.contains('DELETE') || a.contains('CANCEL') || a.contains('REMOVE')) return Icons.delete_outline;
+    if (a.contains('LOGIN')) return Icons.login;
+    if (a.contains('LOGOUT')) return Icons.logout;
+    return Icons.history;
   }
 
   String _formatTimestamp(String? timestamp) {
     if (timestamp == null) return '-';
     try {
       final dt = DateTime.parse(timestamp).toLocal();
-      return DateFormat('dd/MM/yyyy HH:mm').format(dt);
+      return DateFormat('dd MMM yyyy, hh:mm a').format(dt);
     } catch (_) {
       return timestamp;
     }
@@ -93,125 +109,230 @@ class _AuditScreenState extends State<AuditScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final filtered = _filteredLogs;
+    final actions = _allActions;
+
     return AppScaffold(
-      title: 'Audit Trail',
+      title: 'Activity Logs',
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              controller: _searchCtrl,
-              decoration: InputDecoration(
-                hintText: 'Search by user, action, or details...',
-                prefixIcon: const Icon(Icons.search),
-                border: const OutlineInputBorder(),
-                contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                suffixIcon: _searchCtrl.text.isNotEmpty
-                    ? IconButton(icon: const Icon(Icons.clear), onPressed: () { _searchCtrl.clear(); _load(); })
-                    : null,
-              ),
-              onSubmitted: (_) => _load(),
+          Container(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary,
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
+            ),
+            child: Column(
+              children: [
+                TextField(
+                  controller: _searchCtrl,
+                  onChanged: (_) => setState(() {}),
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  decoration: InputDecoration(
+                    hintText: 'Search operations or users...',
+                    hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+                    prefixIcon: const Icon(Icons.search_rounded, color: Colors.white),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.12),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _filterAction,
+                            isExpanded: true,
+                            dropdownColor: theme.colorScheme.primary,
+                            icon: const Icon(Icons.tune_rounded, color: Colors.white, size: 16),
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white),
+                            items: [
+                              const DropdownMenuItem(value: 'ALL', child: Text('ALL ACTIONS')),
+                              ...actions.map((a) => DropdownMenuItem(value: a, child: Text(a.toUpperCase()))),
+                            ],
+                            onChanged: (v) => setState(() => _filterAction = v!),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    IconButton(
+                      onPressed: _load,
+                      icon: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+                        child: const Icon(Icons.refresh_rounded, color: Colors.white, size: 20),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
           Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _error != null
-                    ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                        Text(_error!),
-                        ElevatedButton(onPressed: _load, child: const Text('Retry')),
-                      ]))
-                    : _logs.isEmpty
-                        ? const Center(child: Text('No audit logs found'))
-                        : RefreshIndicator(
-                            onRefresh: _load,
-                            child: ListView.builder(
-                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                              itemCount: _logs.length,
-                              itemBuilder: (context, i) {
-                                final log = _logs[i];
-                                final color = _actionColor(log.action);
-                                return Card(
-                                  margin: const EdgeInsets.only(bottom: 8),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(12),
-                                    child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                          width: 36,
-                                          height: 36,
-                                          decoration: BoxDecoration(
-                                            color: color.withOpacity(0.1),
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: Icon(_actionIcon(log.action), color: color, size: 18),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Row(
-                                                children: [
-                                                  Container(
-                                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                                    decoration: BoxDecoration(
-                                                      color: color.withOpacity(0.15),
-                                                      borderRadius: BorderRadius.circular(10),
-                                                    ),
-                                                    child: Text(
-                                                      log.action ?? '',
-                                                      style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold),
-                                                    ),
-                                                  ),
-                                                  const SizedBox(width: 8),
-                                                  if (log.model != null)
-                                                    Text(log.model!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                                                  if (log.objectId != null) ...[
-                                                    const SizedBox(width: 4),
-                                                    Text('#${log.objectId}', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-                                                  ],
-                                                ],
-                                              ),
-                                              const SizedBox(height: 4),
-                                              if (log.user != null)
-                                                Text('By: ${log.user}', style: TextStyle(fontSize: 12, color: Colors.grey[700])),
-                                              if (log.details != null)
-                                                Text(log.details!, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-                                              const SizedBox(height: 4),
-                                              Row(
-                                                children: [
-                                                  Icon(Icons.access_time, size: 12, color: Colors.grey[400]),
-                                                  const SizedBox(width: 4),
-                                                  Text(
-                                                    _formatTimestamp(log.timestamp),
-                                                    style: TextStyle(fontSize: 11, color: Colors.grey[500]),
-                                                  ),
-                                                  if (log.ipAddress != null) ...[
-                                                    const SizedBox(width: 12),
-                                                    Icon(Icons.computer, size: 12, color: Colors.grey[400]),
-                                                    const SizedBox(width: 4),
-                                                    Text(
-                                                      log.ipAddress!,
-                                                      style: TextStyle(fontSize: 11, color: Colors.grey[500]),
-                                                    ),
-                                                  ],
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
+            child: Container(
+              color: const Color(0xFFF8FAFC),
+              child: _isLoading && _logs.isEmpty
+                  ? const Center(child: CircularProgressIndicator())
+                  : _error != null
+                      ? _buildErrorState()
+                      : filtered.isEmpty
+                          ? _buildEmptyState()
+                          : ListView.builder(
+                              padding: const EdgeInsets.all(24),
+                              itemCount: filtered.length,
+                              itemBuilder: (context, index) => _AuditLogCard(log: filtered[index]),
                             ),
-                          ),
+            ),
           ),
         ],
       ),
     );
   }
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(color: Colors.red[50], shape: BoxShape.circle),
+            child: Icon(Icons.security_update_warning_rounded, size: 48, color: Colors.red[400]),
+          ),
+          const SizedBox(height: 24),
+          Text(_error ?? 'Network conflict', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF1E293B))),
+          const SizedBox(height: 16),
+          ElevatedButton(onPressed: _load, child: const Text('RETRY SYNC')),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(32),
+            decoration: const BoxDecoration(color: Color(0xFFF1F5F9), shape: BoxShape.circle),
+            child: const Icon(Icons.history_toggle_off_rounded, size: 64, color: Color(0xFF94A3B8)),
+          ),
+          const SizedBox(height: 24),
+          const Text('Clear Audit History', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF1E293B))),
+          const Text('No security events matched your criteria.', style: TextStyle(color: Color(0xFF64748B))),
+        ],
+      ),
+    );
+  }
 }
+
+class _AuditLogCard extends StatelessWidget {
+  final AuditLog log;
+  const _AuditLogCard({required this.log});
+
+  Color _actionColor(String? action) {
+    if (action == null) return const Color(0xFF64748B);
+    final a = action.toUpperCase();
+    if (a.contains('CREATE') || a.contains('ADD')) return const Color(0xFF10B981);
+    if (a.contains('UPDATE') || a.contains('EDIT')) return const Color(0xFF3B82F6);
+    if (a.contains('DELETE')) return const Color(0xFFEF4444);
+    if (a.contains('LOGIN')) return const Color(0xFF6366F1);
+    return const Color(0xFF94A3B8);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _actionColor(log.action);
+    final dt = log.timestamp != null ? DateTime.parse(log.timestamp!).toLocal() : DateTime.now();
+    final timeStr = DateFormat('hh:mm a').format(dt);
+    final dateStr = DateFormat('dd MMM').format(dt);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFF1F5F9)),
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          children: [
+            Container(
+              width: 5,
+              margin: const EdgeInsets.symmetric(vertical: 20),
+              decoration: BoxDecoration(color: color, borderRadius: const BorderRadius.horizontal(right: Radius.circular(4))),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          log.action?.toUpperCase() ?? 'ACTION',
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: color, letterSpacing: 1),
+                        ),
+                        const Spacer(),
+                        Text(
+                          '$dateStr, $timeStr',
+                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFF94A3B8)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      log.details ?? 'Security operation performed',
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFF1E293B)),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(8)),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.person_rounded, size: 12, color: Color(0xFF64748B)),
+                              const SizedBox(width: 6),
+                              Text(log.user ?? 'System', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Color(0xFF475569))),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(8)),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.layers_rounded, size: 12, color: Color(0xFF64748B)),
+                              const SizedBox(width: 6),
+                              Text(log.model ?? 'Entity', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Color(0xFF475569))),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
