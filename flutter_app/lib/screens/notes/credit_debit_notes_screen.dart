@@ -77,7 +77,7 @@ class _CreditDebitNotesScreenState extends State<CreditDebitNotesScreen> {
         onSave: (data) async {
           try {
             if (existing != null) {
-              await _api.put('${AppConstants.creditDebitNotes}${existing.id}/', data: data);
+              await _api.patch('${AppConstants.creditDebitNotes}${existing.id}/', data: data);
             } else {
               await _api.post(AppConstants.creditDebitNotes, data: data);
             }

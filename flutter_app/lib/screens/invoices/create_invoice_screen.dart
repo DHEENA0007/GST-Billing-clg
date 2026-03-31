@@ -162,7 +162,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
         'customer': _selectedCustomer!.id,
         'date': _selectedDate,
         'due_date': _selectedDueDate,
-        'status': 'Draft',
+        'status': 'DRAFT',
       };
 
       final created = await _api.post(AppConstants.invoices, data: invoiceData);
@@ -172,7 +172,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
         if (item.product == null) continue;
         await _api.post(AppConstants.invoiceAddItem(invoiceId), data: {
           'product': item.product!.id,
-          'hsn_sac': item.hsnCtrl.text,
+          'description': item.hsnCtrl.text,
           'quantity': item.qty,
           'unit_price': item.price,
           'gst_rate': item.gstRate,

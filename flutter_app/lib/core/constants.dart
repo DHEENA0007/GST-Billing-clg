@@ -143,7 +143,7 @@ class InvoiceTypes {
 }
 
 class NoteTypes {
-  static const String credit = 'Credit';
-  static const String debit = 'Debit';
+  static const String credit = 'CREDIT';
+  static const String debit = 'DEBIT';
   static const List<String> all = [credit, debit];
 }

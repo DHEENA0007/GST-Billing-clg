@@ -521,8 +521,8 @@ class _PaymentDialogState extends State<_PaymentDialog> {
                           await widget.onSave({
                             'invoice': _selectedInvoice?.id,
                             'amount': double.tryParse(_amountCtrl.text) ?? 0,
-                            'payment_mode': _paymentMode,
-                            'payment_date': DateFormat('yyyy-MM-dd').format(_paymentDate),
+                            'mode': _paymentMode,
+                            'date': DateFormat('yyyy-MM-dd').format(_paymentDate),
                             'reference_number': _referenceCtrl.text,
                             'notes': _notesCtrl.text,
                           });

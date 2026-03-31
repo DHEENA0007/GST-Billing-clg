@@ -367,8 +367,8 @@ class Payment {
         invoiceId: json['invoice'] is Map ? json['invoice']['id'] : json['invoice'],
         invoiceNumber: json['invoice'] is Map ? json['invoice']['invoice_number'] : json['invoice_number'],
         amount: _toDouble(json['amount']),
-        paymentMode: json['payment_mode'],
-        paymentDate: json['payment_date'],
+        paymentMode: json['mode'],
+        paymentDate: json['date'],
         referenceNumber: json['reference_number'],
         notes: json['notes'],
       );
@@ -376,8 +376,8 @@ class Payment {
   Map<String, dynamic> toJson() => {
         'invoice': invoiceId,
         'amount': amount,
-        'payment_mode': paymentMode,
-        'payment_date': paymentDate,
+        'mode': paymentMode,
+        'date': paymentDate,
         'reference_number': referenceNumber,
         'notes': notes,
       };

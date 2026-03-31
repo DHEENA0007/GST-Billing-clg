@@ -56,6 +56,7 @@ class PaymentSerializer(serializers.ModelSerializer):
 
 class CreditDebitNoteSerializer(serializers.ModelSerializer):
     invoice_number = serializers.CharField(source='invoice.invoice_number', read_only=True)
+    note_number = serializers.CharField(max_length=50, required=False, allow_blank=True, default='')
 
     class Meta:
         model = CreditDebitNote

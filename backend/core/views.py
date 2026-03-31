@@ -166,8 +166,18 @@ class CreditDebitNoteViewSet(viewsets.ModelViewSet):
     serializer_class = CreditDebitNoteSerializer
 
     def perform_create(self, serializer):
-        obj = serializer.save()
-        log_action(self.request.user, 'CREATE', 'CreditDebitNote', obj.id, f'{obj.note_type} note: {obj.note_number}')
+        note_type = serializer.validated_data.get('note_type', 'CREDIT')
+        prefix = 'CN' if note_type == 'CREDIT' else 'DN'
+        count = CreditDebitNote.objects.count() + 1
+        note_number = f'{prefix}-{count:04d}'
+        while CreditDebitNote.objects.filter(note_number=note_number).exists():
+            count += 1
+            note_number = f'{prefix}-{count:04d}'
+        obj = serializer.save(note_number=note_number)
+        try:
+            log_action(self.request.user, 'CREATE', 'CreditDebitNote', obj.id, f'{obj.note_type} note: {obj.note_number}')
+        except Exception:
+            pass
 
 class AuditLogViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = AuditLog.objects.all()
