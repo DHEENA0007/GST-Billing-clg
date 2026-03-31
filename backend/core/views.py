@@ -100,12 +100,13 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     def add_item(self, request, pk=None):
         invoice = self.get_object()
         data = request.data
-        product = Product.objects.get(id=data['product_id'])
+        product = Product.objects.get(id=data['product'])
         item = InvoiceItem.objects.create(
             invoice=invoice, product=product,
+            description=data.get('description', ''),
             quantity=data['quantity'],
             unit_price=data.get('unit_price', product.price),
-            gst_rate=product.gst_rate
+            gst_rate=data.get('gst_rate', product.gst_rate)
         )
         self.recalculate_totals(invoice)
         return Response({'status': 'Item added', 'item_id': item.id, 'invoice': InvoiceSerializer(invoice).data})

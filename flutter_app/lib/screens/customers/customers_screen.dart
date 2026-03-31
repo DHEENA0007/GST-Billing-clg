@@ -457,7 +457,7 @@ class _CustomerDialogState extends State<_CustomerDialog> {
     try {
       final result = await widget.api.post('${AppConstants.customers}validate_gstin/', data: {'gstin': gstin});
       setState(() {
-        _gstinValidationMsg = result is Map && result['valid'] == true ? 'Verified GSTIN' : 'Invalid GSTIN';
+        _gstinValidationMsg = result is Map && result['is_valid'] == true ? 'Verified GSTIN' : 'Invalid GSTIN';
         _gstinValidating = false;
       });
     } catch (_) {

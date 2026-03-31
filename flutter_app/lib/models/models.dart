@@ -453,7 +453,7 @@ class AuditLog {
         id: json['id'],
         user: json['user'] is Map ? json['user']['username'] : json['user']?.toString(),
         action: json['action'],
-        model: json['model'],
+        model: json['model_name'],
         objectId: json['object_id']?.toString(),
         details: json['details'],
         timestamp: json['timestamp'],
