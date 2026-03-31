@@ -137,9 +137,13 @@ class InvoiceStatuses {
 }
 
 class InvoiceTypes {
-  static const String taxInvoice = 'Tax Invoice';
-  static const String proforma = 'Proforma Invoice';
+  static const String taxInvoice = 'TAX';
+  static const String proforma = 'PROFORMA';
   static const List<String> all = [taxInvoice, proforma];
+  static const Map<String, String> labels = {
+    'TAX': 'Tax Invoice',
+    'PROFORMA': 'Proforma Invoice',
+  };
 }
 
 class NoteTypes {

@@ -169,7 +169,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 pw.Text(
-                  fullInv.invoiceType?.toUpperCase() ?? 'TAX INVOICE',
+                  InvoiceTypes.labels[fullInv.invoiceType?.toUpperCase()] ?? fullInv.invoiceType?.toUpperCase() ?? 'TAX INVOICE',
                   style: pw.TextStyle(
                       fontSize: 20, fontWeight: pw.FontWeight.bold),
                 ),

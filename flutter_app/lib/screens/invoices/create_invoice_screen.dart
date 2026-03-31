@@ -237,7 +237,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                               dropdownColor: Colors.white,
                               style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF1E293B), fontSize: 14),
                               decoration: _inputDecoration('Invoice Classification', Icons.receipt_long_rounded),
-                              items: InvoiceTypes.all.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                              items: InvoiceTypes.all.map((t) => DropdownMenuItem(value: t, child: Text(InvoiceTypes.labels[t] ?? t))).toList(),
                               onChanged: (v) => setState(() => _invoiceType = v!),
                             ),
                             const SizedBox(height: 16),
