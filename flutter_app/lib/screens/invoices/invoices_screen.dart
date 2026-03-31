@@ -131,6 +131,19 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
     }
   }
 
+  Future<void> _recordPayment(Invoice inv) async {
+    await showDialog(
+      context: context,
+      builder: (ctx) => _RecordPaymentDialog(
+        api: _api,
+        invoice: inv,
+        onSaved: () {
+          _loadInvoices();
+        },
+      ),
+    );
+  }
+
   Future<void> _downloadPdf(Invoice inv) async {
     // Fetch full invoice detail for items
     Invoice fullInv = inv;
@@ -406,6 +419,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                                     onPdf: () => _downloadPdf(inv),
                                     onIssue: inv.status?.toUpperCase() == 'DRAFT' ? () => _issueInvoice(inv) : null,
                                     onCancel: (inv.status?.toUpperCase() == 'DRAFT' || inv.status?.toUpperCase() == 'ISSUED') ? () => _cancelInvoice(inv) : null,
+                                    onRecord: (inv.status?.toUpperCase() == 'ISSUED' || inv.status?.toUpperCase() == 'PARTIAL') ? () => _recordPayment(inv) : null,
                                   );
                                 },
                               ),
@@ -461,8 +475,9 @@ class _InvoiceCard extends StatelessWidget {
   final VoidCallback onPdf;
   final VoidCallback? onIssue;
   final VoidCallback? onCancel;
+  final VoidCallback? onRecord;
 
-  const _InvoiceCard({required this.invoice, required this.formatter, required this.onPdf, this.onIssue, this.onCancel});
+  const _InvoiceCard({required this.invoice, required this.formatter, required this.onPdf, this.onIssue, this.onCancel, this.onRecord});
 
   @override
   Widget build(BuildContext context) {
@@ -581,7 +596,8 @@ class _InvoiceCard extends StatelessWidget {
                 _InvoiceAction(icon: Icons.description_rounded, label: 'INVOICE', color: const Color(0xFFF59E0B), onTap: onPdf),
                 if (onIssue != null)
                   _InvoiceAction(icon: Icons.rocket_launch_rounded, label: 'ISSUE', color: const Color(0xFF6366F1), onTap: onIssue!),
-                _InvoiceAction(icon: Icons.account_balance_wallet_rounded, label: 'RECORD', color: const Color(0xFF10B981), onTap: () {}),
+                if (onRecord != null)
+                  _InvoiceAction(icon: Icons.account_balance_wallet_rounded, label: 'RECORD', color: const Color(0xFF10B981), onTap: onRecord!),
                 if (onCancel != null)
                   _InvoiceAction(icon: Icons.block_rounded, label: 'VOID', color: const Color(0xFFEF4444), onTap: onCancel!),
               ],
@@ -627,6 +643,260 @@ class _InvoiceAction extends StatelessWidget {
               Text(label, style: TextStyle(color: color, fontWeight: FontWeight.w900, fontSize: 9, letterSpacing: 0.5)),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RecordPaymentDialog extends StatefulWidget {
+  final ApiService api;
+  final Invoice invoice;
+  final VoidCallback onSaved;
+
+  const _RecordPaymentDialog({required this.api, required this.invoice, required this.onSaved});
+
+  @override
+  State<_RecordPaymentDialog> createState() => _RecordPaymentDialogState();
+}
+
+class _RecordPaymentDialogState extends State<_RecordPaymentDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _amountCtrl = TextEditingController();
+  final _referenceCtrl = TextEditingController();
+  final _notesCtrl = TextEditingController();
+  String _paymentMode = 'CASH';
+  DateTime _paymentDate = DateTime.now();
+  bool _isSaving = false;
+
+  final List<String> _modes = ['CASH', 'BANK', 'UPI', 'CARD', 'CHEQUE'];
+
+  @override
+  void initState() {
+    super.initState();
+    final balance = (widget.invoice.total ?? 0) - (widget.invoice.amountPaid ?? 0);
+    _amountCtrl.text = balance > 0 ? balance.toStringAsFixed(2) : '';
+  }
+
+  @override
+  void dispose() {
+    _amountCtrl.dispose();
+    _referenceCtrl.dispose();
+    _notesCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _selectDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _paymentDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+    );
+    if (picked != null) setState(() => _paymentDate = picked);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final fmt = NumberFormat('#,##,###.##', 'en_IN');
+    final balance = (widget.invoice.total ?? 0) - (widget.invoice.amountPaid ?? 0);
+
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 480),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+              decoration: BoxDecoration(
+                color: const Color(0xFF10B981),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('RECORD PAYMENT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1)),
+                      const SizedBox(height: 4),
+                      Text(widget.invoice.invoiceNumber ?? '', style: TextStyle(color: Colors.white.withOpacity(0.8), fontWeight: FontWeight.bold, fontSize: 13)),
+                      Text('Balance: ₹${fmt.format(balance)}', style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 12)),
+                    ],
+                  ),
+                  IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close_rounded, color: Colors.white70)),
+                ],
+              ),
+            ),
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    TextFormField(
+                      controller: _amountCtrl,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF059669), fontSize: 18),
+                      decoration: InputDecoration(
+                        labelText: 'Amount',
+                        prefixIcon: const Icon(Icons.currency_rupee_rounded, size: 20, color: Color(0xFF64748B)),
+                        suffixText: 'INR',
+                        filled: true,
+                        fillColor: Colors.white,
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: theme.colorScheme.primary, width: 2)),
+                        errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFFE11D48))),
+                        focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFFE11D48), width: 2)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      ),
+                      validator: (v) {
+                        if (v == null || v.isEmpty) return 'Enter amount';
+                        if (double.tryParse(v) == null) return 'Invalid number';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: DropdownButtonFormField<String>(
+                            value: _paymentMode,
+                            decoration: InputDecoration(
+                              labelText: 'Mode',
+                              filled: true,
+                              fillColor: Colors.white,
+                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: theme.colorScheme.primary, width: 2)),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                            ),
+                            items: _modes.map((m) => DropdownMenuItem(value: m, child: Text(m, style: const TextStyle(fontWeight: FontWeight.w700)))).toList(),
+                            onChanged: (v) => setState(() => _paymentMode = v!),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: InkWell(
+                            onTap: _selectDate,
+                            borderRadius: BorderRadius.circular(16),
+                            child: InputDecorator(
+                              decoration: InputDecoration(
+                                labelText: 'Date',
+                                prefixIcon: const Icon(Icons.calendar_month_rounded, size: 20, color: Color(0xFF64748B)),
+                                filled: true,
+                                fillColor: Colors.white,
+                                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                              ),
+                              child: Text(DateFormat('dd MMM yyyy').format(_paymentDate), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: Color(0xFF1E293B))),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _referenceCtrl,
+                      decoration: InputDecoration(
+                        labelText: 'Reference / UTR',
+                        filled: true,
+                        fillColor: Colors.white,
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: theme.colorScheme.primary, width: 2)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      ),
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _notesCtrl,
+                      maxLines: 2,
+                      decoration: InputDecoration(
+                        labelText: 'Notes',
+                        filled: true,
+                        fillColor: Colors.white,
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: theme.colorScheme.primary, width: 2)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: const BoxDecoration(
+                color: Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
+                border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        foregroundColor: const Color(0xFF64748B),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w900)),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton(
+                      onPressed: _isSaving ? null : () async {
+                        if (!_formKey.currentState!.validate()) return;
+                        setState(() => _isSaving = true);
+                        try {
+                          await widget.api.post(AppConstants.payments, data: {
+                            'invoice': widget.invoice.id,
+                            'amount': double.tryParse(_amountCtrl.text) ?? 0,
+                            'payment_mode': _paymentMode,
+                            'payment_date': DateFormat('yyyy-MM-dd').format(_paymentDate),
+                            'reference_number': _referenceCtrl.text,
+                            'notes': _notesCtrl.text,
+                          });
+                          if (mounted) {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Payment recorded successfully'), backgroundColor: Colors.green),
+                            );
+                            widget.onSaved();
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
+                          }
+                        } finally {
+                          if (mounted) setState(() => _isSaving = false);
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF10B981),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      child: _isSaving
+                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          : const Text('RECORD PAYMENT', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

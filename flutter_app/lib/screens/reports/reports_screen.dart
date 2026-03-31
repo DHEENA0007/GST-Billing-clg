@@ -71,8 +71,8 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
     setState(() => _isLoading = true);
     try {
       final result = await _api.get(_currentEndpoint, queryParameters: {
-        'start_date': _startDate,
-        'end_date': _endDate,
+        'start': _startDate,
+        'end': _endDate,
       });
       setState(() {
         _data = result is Map ? Map<String, dynamic>.from(result) : {};
