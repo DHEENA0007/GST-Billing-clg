@@ -156,7 +156,10 @@ class PaymentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         obj = serializer.save()
-        log_action(self.request.user, 'CREATE', 'Payment', obj.id, f'Payment of {obj.amount}')
+        try:
+            log_action(self.request.user, 'CREATE', 'Payment', obj.id, f'Payment of {obj.amount}')
+        except Exception:
+            pass
 
 class CreditDebitNoteViewSet(viewsets.ModelViewSet):
     queryset = CreditDebitNote.objects.all().order_by('-date')

@@ -436,7 +436,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       children: stats.map((stat) => Expanded(
         child: Padding(
           padding: EdgeInsets.only(left: stats.indexOf(stat) == 0 ? 0 : 16),
-          child: SizedBox(height: 150, child: _buildStatCard(stat)),
+          child: SizedBox(height: 165, child: _buildStatCard(stat)),
         ),
       )).toList(),
     );

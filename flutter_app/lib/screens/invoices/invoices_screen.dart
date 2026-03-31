@@ -861,8 +861,8 @@ class _RecordPaymentDialogState extends State<_RecordPaymentDialog> {
                           await widget.api.post(AppConstants.payments, data: {
                             'invoice': widget.invoice.id,
                             'amount': double.tryParse(_amountCtrl.text) ?? 0,
-                            'payment_mode': _paymentMode,
-                            'payment_date': DateFormat('yyyy-MM-dd').format(_paymentDate),
+                            'mode': _paymentMode,
+                            'date': DateFormat('yyyy-MM-dd').format(_paymentDate),
                             'reference_number': _referenceCtrl.text,
                             'notes': _notesCtrl.text,
                           });

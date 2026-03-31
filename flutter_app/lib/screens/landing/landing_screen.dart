@@ -191,11 +191,6 @@ class _HeroSection extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
-        image: DecorationImage(
-          image: const NetworkImage('https://www.transparenttextures.com/patterns/cubes.png'), // Very subtle geometric pattern overlay
-          opacity: 0.03,
-          repeat: ImageRepeat.repeat,
-        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
